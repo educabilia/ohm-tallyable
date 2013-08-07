@@ -39,6 +39,12 @@ leaderboard:
 	Post.leaderboard(:category, :site_id => 'ar') 
 
 
+Requirements
+------------
+
+This plugin works with Ohm versions higher than 0.1.3.
+
+
 Acknowledgements
 ----------------
 
