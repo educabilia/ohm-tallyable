@@ -10,7 +10,7 @@ Setup
 
 1. Include the `Tallyable` module in your model:
 
-		include Tallyable
+		include Ohm::Tallyable
 
 2. Add a tally to your model with the following line:
 
@@ -39,8 +39,9 @@ leaderboard:
 	Post.leaderboard(:category, :site_id => 'ar') 
 
 
-Contributors
-------------
+Acknowledgements
+----------------
 
- * Federico Bond (https://github.com/federicobond)
- * Damian Janowski (https://github.com/djanowski)
+Many thanks to Damian Janowski (https://github.com/djanowski) who took care to
+explain me the details of coding an Ohm plugin and providing many ideas on
+how to handle certain cases.
