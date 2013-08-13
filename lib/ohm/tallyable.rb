@@ -13,18 +13,24 @@ module Ohm
       end
 
       def leaderboard(attribute, by=nil)
+        raise ArgumentError if !_has_tally(attribute, by)
+
+        _load_zset(_tally_key(attribute, by))
+          .map { |k, v| [k, v.to_i] }
+          .sort_by { |k, v| [-v, k] }
+      end
+
+      def _has_tally(attribute, by=nil)
         tally = tallies[attribute]
-        if tally.nil? || (tally[:by] && (by.nil? || !by.include?(tally[:by])))
-          raise ArgumentError
-        end
+        !!(tally && (!tally[:by] || (by && by.include?(tally[:by]))))
+      end
+
+      def _tally_key(attribute, by=nil)
         key = self.key[:tallies][attribute]
         if by
           key = key[by.keys.first][by.values.first]
         end
-
-        _load_zset(key)
-          .map { |k, v| [k, v.to_i] }
-          .sort_by { |k, v| [-v, k] }
+        key
       end
 
       if Redis::VERSION.to_i == 2
@@ -56,13 +62,10 @@ module Ohm
 
     def _update_tallies(amount, &block)
       self.class.tallies.each do |attribute, options|
-        value = yield(attribute)
-        key = self.class.key[:tallies][attribute]
-        if options[:by]
-          value_by = yield(options[:by])
-          key = key[options[:by]][value_by]
-        end
-        if value
+        by = options[:by] ? {options[:by] => yield(options[:by])} : nil
+        key = self.class._tally_key(attribute, by)
+
+        if (value = yield(attribute))
           key.zincrby(amount, value)
           key.zrem(value) if key.zscore(value) == 0.0
         end
