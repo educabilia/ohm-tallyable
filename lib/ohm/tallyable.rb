@@ -45,15 +45,30 @@ module Ohm
     end
 
     def self.included(model)
-      model.before(:delete, :_decrement_tallies)
-      model.before(:save, :_decrement_tallies)
-      model.after(:save, :_increment_tallies)
-
+      unless new_callbacks?
+        model.before(:delete, :_decrement_tallies)
+        model.before(:save, :_decrement_tallies)
+        model.after(:save, :_increment_tallies)
+      end
       model.extend(Macros)
     end
 
+    private
+    def self.new_callbacks?
+      Ohm::Callbacks.protected_instance_methods.include?(:before_save)
+    end
+
+    protected
     def _decrement_tallies
-      _update_tallies(-1) { |attribute| read_remote(attribute) }
+      _update_tallies(-1) do |attribute|
+        if respond_to? :read_remote
+          read_remote(attribute)
+        else
+          # ugly, but better than using get and having
+          # to save and restore the old value
+          db.hget(key, attribute)
+        end
+      end
     end
 
     def _increment_tallies
@@ -67,8 +82,24 @@ module Ohm
 
         if (value = yield(attribute))
           key.zincrby(amount, value)
-          key.zrem(value) if key.zscore(value) == 0.0
+          # need to convert zscore to_i because older versions
+          # return a double encoded in a string
+          key.zrem(value) if key.zscore(value).to_i == 0
         end
+      end
+    end
+
+    if new_callbacks?
+      def before_delete
+        _decrement_tallies
+      end
+
+      def before_update
+        _decrement_tallies
+      end
+
+      def after_save
+        _increment_tallies
       end
     end
   end
