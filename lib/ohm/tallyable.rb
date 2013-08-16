@@ -92,14 +92,17 @@ module Ohm
     if new_callbacks?
       def before_delete
         _decrement_tallies
+        super
       end
 
       def before_update
         _decrement_tallies
+        super
       end
 
       def after_save
         _increment_tallies
+        super
       end
     end
   end
