@@ -60,15 +60,7 @@ module Ohm
 
     protected
     def _decrement_tallies
-      _update_tallies(-1) do |attribute|
-        if respond_to? :read_remote
-          read_remote(attribute)
-        else
-          # ugly, but better than using get and having
-          # to save and restore the old value
-          db.hget(key, attribute)
-        end
-      end
+      _update_tallies(-1) { |attribute| db.hget(key, attribute) }
     end
 
     def _increment_tallies
