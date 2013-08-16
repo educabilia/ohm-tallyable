@@ -10,8 +10,9 @@ A tally plugin for Ohm
 Setup
 -----
 
-1. Include the `Tallyable` module in your model:
+1. Include the `Callbacks` and `Tallyable` modules in your model:
 
+		include Ohm::Callbacks 
 		include Ohm::Tallyable
 
 2. Add a tally to your model with the following line:
@@ -25,7 +26,8 @@ Usage
 
 To query the tallies, use the `leaderboard` class method.
 
-    Post.leaderboard(:category)
+    >> Post.leaderboard(:category)
+    => [["Personal", 2], ["Work", 1]]
 
 
 Advanced Usage
