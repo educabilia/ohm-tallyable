@@ -33,32 +33,51 @@ module Ohm
         key
       end
 
-      if Redis::VERSION.to_i == 2
-        def _load_zset(key)
-          key.zrevrange(0, -1, with_scores: true).each_slice(2)
-        end
-      else
+      if Redis::VERSION.to_i >= 3
         def _load_zset(key)
           key.zrevrange(0, -1, with_scores: true)
         end
+      else
+        def _load_zset(key)
+          key.zrevrange(0, -1, with_scores: true).each_slice(2)
+        end
       end
     end
 
-    def self.included(model)
-      unless new_callbacks?
+    if Ohm::Contrib::VERSION.to_i >= 1
+      def self.included(model)
+        model.extend(Macros)
+      end
+
+      def before_delete
+        _decrement_tallies
+        super
+      end
+      protected :before_delete
+
+      def before_update
+        _decrement_tallies
+        super
+      end
+      protected :before_update
+
+      def after_save
+        _increment_tallies
+        super
+      end
+      protected :after_save
+
+    else
+      def self.included(model)
         model.before(:delete, :_decrement_tallies)
         model.before(:save, :_decrement_tallies)
         model.after(:save, :_increment_tallies)
+
+        model.extend(Macros)
       end
-      model.extend(Macros)
     end
 
-    private
-    def self.new_callbacks?
-      Ohm::Callbacks.protected_instance_methods.include?(:before_save)
-    end
-
-    protected
+  protected
     def _decrement_tallies
       _update_tallies(-1) { |attribute| db.hget(key, attribute) }
     end
@@ -68,6 +87,8 @@ module Ohm
     end
 
     def _update_tallies(amount, &block)
+      return if new?
+
       self.class.tallies.each do |attribute, options|
         by = options[:by] ? {options[:by] => yield(options[:by])} : nil
         key = self.class._tally_key(attribute, by)
@@ -78,23 +99,6 @@ module Ohm
           # return a double encoded in a string
           key.zrem(value) if key.zscore(value).to_i == 0
         end
-      end
-    end
-
-    if new_callbacks?
-      def before_delete
-        _decrement_tallies
-        super
-      end
-
-      def before_update
-        _decrement_tallies
-        super
-      end
-
-      def after_save
-        _increment_tallies
-        super
       end
     end
   end
