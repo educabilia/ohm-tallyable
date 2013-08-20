@@ -11,17 +11,17 @@ task :run => [:start, :test, :stop]
 
 desc "Start the Redis server"
 task :start do
-    unless File.exists?(REDIS_PID)
-        system "redis-server #{REDIS_CNF}"
-    end
+  unless File.exists?(REDIS_PID)
+    system "redis-server #{REDIS_CNF}"
+  end
 end
 
 desc "Stop the Redis server"
 task :stop do
-    if File.exists?(REDIS_PID)
-        system "kill #{File.read(REDIS_PID)}"
-        File.delete(REDIS_PID)
-    end
+  if File.exists?(REDIS_PID)
+    system "kill #{File.read(REDIS_PID)}"
+    File.delete(REDIS_PID)
+  end
 end
 
 Rake::TestTask.new do |t|
