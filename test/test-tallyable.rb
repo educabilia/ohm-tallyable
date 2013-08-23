@@ -60,6 +60,15 @@ class TallyableTest < Test::Unit::TestCase
       Event.retally(:foo)
     end
   end
+
+  def test_retally_empty
+    Event.all.each(&:delete)
+    Event.retally(:location)
+  end
+
+  def test_retally_should_return_nil
+    assert_equal nil, Event.retally(:location)
+  end
 end
 
 class Post < Ohm::Model

@@ -14,7 +14,8 @@ module Ohm
 
       def retally(attribute)
         raise ArgumentError unless tallies.include?(attribute)
-        db.del(*_tally_keys(attribute))
+        keys = _tally_keys(attribute)
+        db.del(*keys) unless keys.empty?
         all.each { |e| e.send(:_increment_tallies) }
       end
 
