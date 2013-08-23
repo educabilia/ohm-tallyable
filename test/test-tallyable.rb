@@ -54,6 +54,12 @@ class TallyableTest < Test::Unit::TestCase
     l = Event.leaderboard(:location)
     assert_equal [["Buenos Aires", 2], ["Rosario", 1]], l
   end
+
+  def test_retally_invalid
+    assert_raise(ArgumentError) do
+      Event.retally(:foo)
+    end
+  end
 end
 
 class Post < Ohm::Model
