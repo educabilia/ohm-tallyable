@@ -12,8 +12,14 @@ module Ohm
         @tallies ||= {}
       end
 
+      def retally(attribute)
+        raise ArgumentError unless tallies.include?(attribute)
+        db.del(*_tally_keys(attribute))
+        all.each { |e| e.send(:_increment_tallies) }
+      end
+
       def leaderboard(attribute, by=nil)
-        raise ArgumentError if !_has_tally(attribute, by)
+        raise ArgumentError unless _has_tally(attribute, by)
 
         _load_zset(_tally_key(attribute, by))
           .map { |k, v| [k, v.to_i] }
@@ -31,6 +37,11 @@ module Ohm
           key = key[by.keys.first][by.values.first]
         end
         key
+      end
+
+      def _tally_keys(attribute)
+        keys = db.keys(_tally_key(attribute))
+        keys.concat(db.keys(_tally_key(attribute)["*"]))
       end
 
       if Redis::VERSION.to_i >= 3

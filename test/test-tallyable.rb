@@ -45,6 +45,15 @@ class TallyableTest < Test::Unit::TestCase
     l = Event.leaderboard(:location)
     assert_equal [], l
   end
+
+  def test_retally
+    Event.create(location: "Buenos Aires")
+    Event.create(location: "Rosario")
+    Event.retally(:location)
+
+    l = Event.leaderboard(:location)
+    assert_equal [["Buenos Aires", 2], ["Rosario", 1]], l
+  end
 end
 
 class Post < Ohm::Model
@@ -96,5 +105,17 @@ class TallyableByTest < Test::Unit::TestCase
     assert_raise(ArgumentError) do
       Post.leaderboard(:category, foo: "bar")
     end
+  end
+
+  def test_retally
+    Post.retally(:category)
+    l = Post.leaderboard(:category, site: "ar")
+    assert_equal [["Personal", 2], ["Work", 1]], l
+  end
+
+  def post_retally_all
+    Post.retally(:category)
+    l = Post.leaderboard(:category, site: "ar")
+    assert_equal [["Personal", 2], ["Work", 1]], l
   end
 end
