@@ -1,3 +1,9 @@
+### 0.1.5
+
+ - Add `super` calls to callback methods
+ - Improve version handling code
+ - Add retally class method to recompute tallies
+
 ### 0.1.4
 
  - Fix support for Ohm 1.x and Redis 3.x

@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'ohm-tallyable'
-  s.version     = '0.1.4'
+  s.version     = '0.1.5'
   s.summary     = "Ohm Tally Plugin"
   s.description = "A tally plugin for Ohm that keeps counts of records for every value of an attribute"
   s.author      = "Federico Bond"
