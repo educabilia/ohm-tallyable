@@ -43,6 +43,12 @@ leaderboard:
 	Post.leaderboard(:category, :site_id => 'ar') 
 
 
+If for any reason you find yourself having to recompute the tallies, you can do
+so with this line of code:
+
+    Post.retally(:category)
+
+
 Requirements
 ------------
 
