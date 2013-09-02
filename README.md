@@ -2,6 +2,7 @@ ohm-tallyable
 =============
 
 [![Gem Version](https://badge.fury.io/rb/ohm-tallyable.png)](http://badge.fury.io/rb/ohm-tallyable)
+[![Build Status](https://travis-ci.org/educabilia/ohm-tallyable.png?branch=master)](https://travis-ci.org/educabilia/ohm-tallyable)
 [![Code Climate](https://codeclimate.com/github/educabilia/ohm-tallyable.png)](https://codeclimate.com/github/educabilia/ohm-tallyable)
 
 A tally plugin for Ohm that keeps counts of records for every value of an attribute
