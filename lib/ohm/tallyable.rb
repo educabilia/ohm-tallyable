@@ -99,7 +99,7 @@ module Ohm
       _update_tallies(1) { |attribute| send(attribute) }
     end
 
-    def _update_tallies(amount, &block)
+    def _update_tallies(amount)
       return if new?
 
       self.class.tallies.each do |attribute, options|
