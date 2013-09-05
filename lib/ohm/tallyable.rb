@@ -14,26 +14,26 @@ module Ohm
 
       def retally(attribute)
         raise ArgumentError unless tallies.include?(attribute)
-        keys = _tally_keys(attribute)
+        keys = tally_keys(attribute)
         db.del(*keys) unless keys.empty?
-        all.each { |e| e.send(:_increment_tallies) }
+        all.each { |e| e.send(:increment_tallies) }
         nil
       end
 
       def leaderboard(attribute, by=nil)
-        raise ArgumentError unless _has_tally(attribute, by)
+        raise ArgumentError unless tally_exists?(attribute, by)
 
-        _load_zset(_tally_key(attribute, by))
+        _load_zset(tally_key(attribute, by))
           .map { |k, v| [k, v.to_i] }
           .sort_by { |k, v| [-v, k] }
       end
 
-      def _has_tally(attribute, by=nil)
+      def tally_exists?(attribute, by=nil)
         tally = tallies[attribute]
         !!(tally && (!tally[:by] || (by && by.include?(tally[:by]))))
       end
 
-      def _tally_key(attribute, by=nil)
+      def tally_key(attribute, by=nil)
         key = self.key[:tallies][attribute]
         if by
           key = key[by.keys.first][by.values.first]
@@ -41,9 +41,9 @@ module Ohm
         key
       end
 
-      def _tally_keys(attribute)
-        keys = db.keys(_tally_key(attribute))
-        keys.concat(db.keys(_tally_key(attribute)["*"]))
+      def tally_keys(attribute)
+        keys = db.keys(tally_key(attribute))
+        keys.concat(db.keys(tally_key(attribute)["*"]))
       end
 
       if Redis::VERSION.to_i >= 3
@@ -55,6 +55,7 @@ module Ohm
           key.zrevrange(0, -1, with_scores: true).each_slice(2)
         end
       end
+      protected :_load_zset
     end
 
     if Ohm::Contrib::VERSION.to_i >= 1
@@ -63,48 +64,48 @@ module Ohm
       end
 
       def before_delete
-        _decrement_tallies
+        decrement_tallies
         super
       end
       protected :before_delete
 
       def before_update
-        _decrement_tallies
+        decrement_tallies
         super
       end
       protected :before_update
 
       def after_save
-        _increment_tallies
+        increment_tallies
         super
       end
       protected :after_save
 
     else
       def self.included(model)
-        model.before(:delete, :_decrement_tallies)
-        model.before(:save, :_decrement_tallies)
-        model.after(:save, :_increment_tallies)
+        model.before(:delete, :decrement_tallies)
+        model.before(:save, :decrement_tallies)
+        model.after(:save, :increment_tallies)
 
         model.extend(Macros)
       end
     end
 
   protected
-    def _decrement_tallies
-      _update_tallies(-1) { |attribute| db.hget(key, attribute) }
+    def decrement_tallies
+      update_tallies(-1) { |attribute| db.hget(key, attribute) }
     end
 
-    def _increment_tallies
-      _update_tallies(1) { |attribute| send(attribute) }
+    def increment_tallies
+      update_tallies(1) { |attribute| send(attribute) }
     end
 
-    def _update_tallies(amount)
+    def update_tallies(amount)
       return if new?
 
       self.class.tallies.each do |attribute, options|
         by = options[:by] ? {options[:by] => yield(options[:by])} : nil
-        key = self.class._tally_key(attribute, by)
+        key = self.class.tally_key(attribute, by)
 
         if (value = yield(attribute))
           key.zincrby(amount, value)
