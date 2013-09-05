@@ -46,7 +46,7 @@ module Ohm
         keys.concat(db.keys(tally_key(attribute)["*"]))
       end
 
-      if Redis::VERSION.to_i >= 3
+      if Redis::VERSION >= "3.0.0"
         def _load_zset(key)
           key.zrevrange(0, -1, with_scores: true)
         end
@@ -58,7 +58,7 @@ module Ohm
       protected :_load_zset
     end
 
-    if Ohm::Contrib::VERSION.to_i >= 1
+    if Ohm::Contrib::VERSION >= "1.0.0"
       def self.included(model)
         model.extend(ClassMethods)
       end
