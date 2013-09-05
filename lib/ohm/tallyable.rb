@@ -58,40 +58,26 @@ module Ohm
       protected :_load_zset
     end
 
-    if Ohm::Contrib::VERSION >= "1.0.0"
-      def self.included(model)
-        model.extend(ClassMethods)
-      end
-
-      def before_delete
-        decrement_tallies
-        super
-      end
-      protected :before_delete
-
-      def before_update
-        decrement_tallies
-        super
-      end
-      protected :before_update
-
-      def after_save
-        increment_tallies
-        super
-      end
-      protected :after_save
-
-    else
-      def self.included(model)
-        model.before(:delete, :decrement_tallies)
-        model.before(:save, :decrement_tallies)
-        model.after(:save, :increment_tallies)
-
-        model.extend(ClassMethods)
-      end
+    def self.included(model)
+      model.extend(ClassMethods)
     end
 
   protected
+    def before_delete
+      decrement_tallies
+      super
+    end
+
+    def before_update
+      decrement_tallies
+      super
+    end
+
+    def after_save
+      increment_tallies
+      super
+    end
+
     def decrement_tallies
       update_tallies(-1) { |attribute| db.hget(key, attribute) }
     end
