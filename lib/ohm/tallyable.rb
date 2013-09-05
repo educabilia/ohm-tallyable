@@ -3,7 +3,7 @@ require 'ohm/contrib'
 
 module Ohm
   module Tallyable
-    module Macros
+    module ClassMethods
       def tally(attribute, options={})
         tallies[attribute] = options
       end
@@ -60,7 +60,7 @@ module Ohm
 
     if Ohm::Contrib::VERSION.to_i >= 1
       def self.included(model)
-        model.extend(Macros)
+        model.extend(ClassMethods)
       end
 
       def before_delete
@@ -87,7 +87,7 @@ module Ohm
         model.before(:save, :decrement_tallies)
         model.after(:save, :increment_tallies)
 
-        model.extend(Macros)
+        model.extend(ClassMethods)
       end
     end
 
